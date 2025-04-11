@@ -36,21 +36,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({ symptoms }),
             });
 
+            // Parse response data
+            const data = await response.json();
+            
             // Check if response is ok
             if (!response.ok) {
-                const errorData = await response.json();
-                
-                // If we have a fallback response, display it
-                if (errorData && errorData.fallback_response) {
-                    displayResults(errorData.fallback_response[0], errorData.fallback_response[1]);
-                    showError('An error occurred with our AI service. Showing results from fallback system.');
+                // If we have diagnosis and recommendations from fallback
+                if (data && data.diagnosis && data.recommendations) {
+                    displayResults(data.diagnosis, data.recommendations, true);
+                    showError(data.error || 'Using fallback analysis system.');
                 } else {
-                    throw new Error(errorData.error || 'An error occurred while analyzing symptoms.');
+                    throw new Error(data.error || 'An error occurred while analyzing symptoms.');
                 }
             } else {
-                // Parse and display results
-                const data = await response.json();
-                displayResults(data.diagnosis, data.recommendations);
+                // Display normal results
+                displayResults(data.diagnosis, data.recommendations, false);
                 hideError(); // Make sure any previous errors are hidden
             }
         } catch (error) {
@@ -62,9 +62,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Function to display results
-    function displayResults(diagnosis, recommendations) {
-        // Update diagnosis
-        diagnosisOutput.innerHTML = `<p>${diagnosis}</p>`;
+    function displayResults(diagnosis, recommendations, isFallback = false) {
+        // Update diagnosis with a fallback indicator if needed
+        if (isFallback) {
+            diagnosisOutput.innerHTML = `
+                <div class="alert alert-warning mb-2" role="alert">
+                    <small><i class="fas fa-exclamation-triangle me-1"></i> Using simplified analysis (AI service unavailable)</small>
+                </div>
+                <p>${diagnosis}</p>
+            `;
+            diagnosisOutput.classList.add('border-warning', 'border-start');
+        } else {
+            diagnosisOutput.innerHTML = `<p>${diagnosis}</p>`;
+            diagnosisOutput.classList.remove('border-warning', 'border-start');
+        }
         
         // Update recommendations
         let recommendationsHTML = '';

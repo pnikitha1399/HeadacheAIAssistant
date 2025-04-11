@@ -160,48 +160,88 @@ class HeadacheRAG:
         Returns:
             Tuple of (diagnosis, recommendations)
         """
-        # Simple keyword-based analysis
+        # Simple keyword-based analysis with improved pattern matching
         keywords = symptoms.lower()
-        diagnosis = "Based on the limited analysis available due to system constraints, "
-        recommendations = ["Please consult a healthcare professional for accurate diagnosis."]
+        diagnosis = "Based on the pattern matching analysis of your symptoms, "
+        recommendations = ["Please consult a healthcare professional for proper diagnosis."]
         
-        # Very basic pattern matching
-        if "migraine" in keywords or "aura" in keywords or "one side" in keywords:
-            diagnosis += "your symptoms suggest a possible migraine."
-            recommendations.extend([
-                "Rest in a quiet, dark room",
-                "Apply cold or warm compress",
-                "Stay hydrated",
-                "Over-the-counter pain medication may help (follow package instructions)"
-            ])
-        elif "cluster" in keywords or "eye pain" in keywords or "one eye" in keywords:
-            diagnosis += "your symptoms have some similarities with cluster headaches."
-            recommendations.extend([
-                "Consult a doctor immediately as cluster headaches often need prescription medication",
-                "Oxygen therapy might help (requires medical supervision)",
-                "Avoid alcohol during headache periods"
-            ])
-        elif "tension" in keywords or "stress" in keywords or "tight" in keywords or "pressure" in keywords:
-            diagnosis += "your symptoms are consistent with tension headaches."
-            recommendations.extend([
-                "Stress management techniques like meditation",
-                "Gentle neck and shoulder stretches",
-                "Regular breaks from screen time",
-                "Over-the-counter pain relievers if needed"
-            ])
-        elif "sudden" in keywords and ("severe" in keywords or "worst" in keywords):
-            diagnosis += "your symptoms could indicate a serious condition requiring IMMEDIATE medical attention."
+        # More comprehensive pattern matching
+        migraine_keywords = ["migraine", "aura", "one side", "throbbing", "pulsing", "nausea", 
+                           "vomit", "light sensitive", "sound sensitive", "visual", "blind spot"]
+        tension_keywords = ["tension", "stress", "tight", "pressure", "band", "squeezing", 
+                          "both sides", "constant", "dull", "neck", "shoulders"]
+        cluster_keywords = ["cluster", "eye pain", "one eye", "severe", "burning", 
+                          "piercing", "one side", "runny nose", "teary", "occurs at night"]
+        sinus_keywords = ["sinus", "face pain", "congestion", "stuffy", "mucus", 
+                         "cheeks", "forehead", "bending forward", "worse when lying"]
+        emergency_keywords = ["sudden", "severe", "worst", "thunderclap", "stiff neck", 
+                            "fever", "confusion", "speech", "weakness", "numbness", "seizure", "vision loss", "vomiting"]
+        
+        # Count keyword matches for each type
+        migraine_count = sum(1 for word in migraine_keywords if word in keywords)
+        tension_count = sum(1 for word in tension_keywords if word in keywords)
+        cluster_count = sum(1 for word in cluster_keywords if word in keywords)
+        sinus_count = sum(1 for word in sinus_keywords if word in keywords)
+        emergency_count = sum(1 for word in emergency_keywords if word in keywords)
+        
+        # Check for possible emergency conditions first
+        if emergency_count >= 2 and any(word in keywords for word in ["worst", "sudden", "severe"]):
+            diagnosis = "Your symptoms suggest a potentially serious condition that requires IMMEDIATE medical attention."
             recommendations = [
-                "SEEK EMERGENCY CARE IMMEDIATELY",
+                "⚠️ SEEK EMERGENCY CARE IMMEDIATELY",
                 "Call emergency services or go to the nearest emergency room",
-                "Do not drive yourself if experiencing severe symptoms"
+                "Do not drive yourself if experiencing severe symptoms",
+                "IMPORTANT: This is not a medical diagnosis. Please seek professional medical help immediately."
             ]
+            return diagnosis, recommendations
+        
+        # Determine most likely headache type based on keyword count
+        headache_types = [
+            (migraine_count, "migraine", [
+                "Rest in a quiet, dark room",
+                "Apply cold or warm compress to the forehead or neck",
+                "Stay well hydrated",
+                "Over-the-counter pain medications such as ibuprofen may help (follow package instructions)",
+                "Track potential triggers like certain foods, stress, or hormonal changes"
+            ]),
+            (tension_count, "tension headache", [
+                "Practice stress management techniques like deep breathing or meditation",
+                "Take regular breaks from screen time and work",
+                "Apply gentle stretching to neck and shoulder muscles",
+                "Consider over-the-counter pain relievers if appropriate",
+                "Maintain good posture, especially when working at a desk"
+            ]),
+            (cluster_count, "cluster headache", [
+                "Consult a doctor promptly as cluster headaches often require prescription medication",
+                "Oxygen therapy might help (requires medical supervision)",
+                "Avoid alcohol consumption during headache periods",
+                "Keep a regular sleep schedule",
+                "Avoid smoking and tobacco products"
+            ]),
+            (sinus_count, "sinus headache", [
+                "Use a saline nasal spray to clear congestion",
+                "Apply warm compresses to painful sinus areas",
+                "Stay hydrated to thin mucus secretions",
+                "Consider over-the-counter decongestants (follow package instructions)",
+                "Use a humidifier, especially when sleeping"
+            ])
+        ]
+        
+        # Find the headache type with the most keyword matches
+        headache_types.sort(reverse=True)
+        max_count, headache_type, headache_recommendations = headache_types[0]
+        
+        # If we have a reasonable match (at least 2 keyword matches)
+        if max_count >= 2:
+            diagnosis += f"your symptoms are consistent with a {headache_type}."
+            recommendations.extend(headache_recommendations)
         else:
             diagnosis += "I cannot determine a specific type of headache from the information provided."
             recommendations.extend([
-                "Track your symptoms and potential triggers",
-                "Stay hydrated and get adequate sleep",
-                "Consider over-the-counter pain relief if appropriate"
+                "Keep a headache diary to track symptoms, duration, and potential triggers",
+                "Ensure you're staying hydrated and getting adequate sleep",
+                "Consider over-the-counter pain relief if appropriate",
+                "Pay attention to potential environmental triggers like bright lights, strong smells, or certain foods"
             ])
         
         # Always include this disclaimer
