@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Headache AI Assistant</title>
+    <!-- Bootstrap CSS with Replit theme -->
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+</head>
+<body>
+    <div class="container py-4">
+        <header class="text-center mb-5">
+            <h1 class="display-5 fw-bold">
+                <i class="fas fa-brain text-info me-2"></i> Headache AI Assistant
+            </h1>
+            <p class="lead">Describe your headache symptoms for AI-powered analysis and recommendations</p>
+            <div class="alert alert-warning" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Medical Disclaimer:</strong> This tool provides information only and is not a substitute for professional medical advice, diagnosis, or treatment.
+            </div>
+        </header>
+
+        <main>
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-primary bg-opacity-10">
+                            <h2 class="h5 mb-0">
+                                <i class="fas fa-clipboard-list me-2"></i> Describe Your Symptoms
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="symptomsInput" class="form-label">Please be as detailed as possible</label>
+                                <textarea id="symptomsInput" class="form-control" rows="10" placeholder="Example: I've had a throbbing pain on the right side of my head for the past 4 hours. Light makes it worse, and I feel slightly nauseated. This is the third time this week..."></textarea>
+                            </div>
+                            <div class="d-grid">
+                                <button id="analyzeBtn" class="btn btn-primary">
+                                    <i class="fas fa-stethoscope me-2"></i> Analyze Symptoms
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-info bg-opacity-10">
+                            <h2 class="h5 mb-0">
+                                <i class="fas fa-notes-medical me-2"></i> Analysis Results
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <div id="loadingIndicator" class="text-center p-5 d-none">
+                                <div class="spinner-border text-info" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-3">Analyzing your symptoms...</p>
+                            </div>
+
+                            <div id="resultsContainer" class="d-none">
+                                <div class="mb-4">
+                                    <h3 class="h6 fw-bold">Possible Diagnosis</h3>
+                                    <div id="diagnosisOutput" class="p-3 bg-secondary bg-opacity-10 rounded">
+                                        <p class="text-muted fst-italic">Your diagnosis will appear here after analysis</p>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <h3 class="h6 fw-bold">Recommendations</h3>
+                                    <ul id="recommendationsOutput" class="bg-secondary bg-opacity-10 rounded p-3">
+                                        <li class="text-muted fst-italic">Recommendations will appear here after analysis</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div id="emptyState" class="text-center p-5">
+                                <i class="fas fa-file-medical text-secondary opacity-50" style="font-size: 3rem;"></i>
+                                <p class="mt-3 text-muted">Enter your symptoms for AI analysis</p>
+                            </div>
+
+                            <div id="errorContainer" class="alert alert-danger d-none" role="alert">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <span id="errorMessage">An error occurred</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-secondary bg-opacity-10">
+                            <h2 class="h5 mb-0">
+                                <i class="fas fa-info-circle me-2"></i> About This Tool
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <p>This Headache AI Assistant uses advanced AI and medical knowledge to analyze your headache symptoms and provide possible insights.</p>
+                            
+                            <div class="alert alert-info" role="alert">
+                                <h4 class="alert-heading h6"><i class="fas fa-lightbulb me-2"></i> How to get the best results:</h4>
+                                <ul class="mb-0">
+                                    <li>Provide detailed information about your headache (location, intensity, duration)</li>
+                                    <li>Mention any associated symptoms (nausea, sensitivity to light, etc.)</li>
+                                    <li>Include relevant medical history if applicable</li>
+                                    <li>Describe any potential triggers you've identified</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="alert alert-warning mb-0" role="alert">
+                                <h4 class="alert-heading h6"><i class="fas fa-exclamation-triangle me-2"></i> Important Disclaimer:</h4>
+                                <p class="mb-0">
+                                    The information provided by this tool is not a substitute for professional medical advice, diagnosis, or treatment. 
+                                    Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.
+                                    If you think you may have a medical emergency, call your doctor or emergency services immediately.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="mt-5 text-center text-muted">
+            <p>
+                <small>Headache AI Assistant &copy; 2023 | 
+                <a href="https://github.com/" target="_blank" class="text-decoration-none">
+                    <i class="fab fa-github"></i> View on GitHub
+                </a>
+                </small>
+            </p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
