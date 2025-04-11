@@ -165,27 +165,42 @@ class HeadacheRAG:
         diagnosis = "Based on the pattern matching analysis of your symptoms, "
         recommendations = ["Please consult a healthcare professional for proper diagnosis."]
         
-        # More comprehensive pattern matching
-        migraine_keywords = ["migraine", "aura", "one side", "throbbing", "pulsing", "nausea", 
-                           "vomit", "light sensitive", "sound sensitive", "visual", "blind spot"]
-        tension_keywords = ["tension", "stress", "tight", "pressure", "band", "squeezing", 
-                          "both sides", "constant", "dull", "neck", "shoulders"]
-        cluster_keywords = ["cluster", "eye pain", "one eye", "severe", "burning", 
-                          "piercing", "one side", "runny nose", "teary", "occurs at night"]
-        sinus_keywords = ["sinus", "face pain", "congestion", "stuffy", "mucus", 
-                         "cheeks", "forehead", "bending forward", "worse when lying"]
-        emergency_keywords = ["sudden", "severe", "worst", "thunderclap", "stiff neck", 
-                            "fever", "confusion", "speech", "weakness", "numbness", "seizure", "vision loss", "vomiting"]
+        # Break all words into single words and check for individual term matches
+        # This improves detection when users don't use exact phrases
+        keywords_list = keywords.split()
         
-        # Count keyword matches for each type
-        migraine_count = sum(1 for word in migraine_keywords if word in keywords)
-        tension_count = sum(1 for word in tension_keywords if word in keywords)
-        cluster_count = sum(1 for word in cluster_keywords if word in keywords)
-        sinus_count = sum(1 for word in sinus_keywords if word in keywords)
-        emergency_count = sum(1 for word in emergency_keywords if word in keywords)
+        # More comprehensive pattern matching with broader detection
+        migraine_keywords = ["migraine", "aura", "one", "side", "throbbing", "pulsing", "nausea", 
+                           "vomit", "light", "sensitive", "sensitivity", "sound", "visual", 
+                           "blind", "spot", "half", "head", "worse", "pounding", "pound"]
+        tension_keywords = ["tension", "stress", "tight", "pressure", "band", "squeezing", 
+                          "both", "sides", "constant", "dull", "neck", "shoulders", "front", "back"]
+        cluster_keywords = ["cluster", "eye", "pain", "severe", "burning", 
+                          "piercing", "one", "side", "runny", "nose", "teary", "night", "sharp"]
+        sinus_keywords = ["sinus", "face", "pain", "congestion", "stuffy", "mucus", 
+                         "cheeks", "forehead", "bending", "worse", "lying", "nose"]
+        emergency_keywords = ["sudden", "severe", "worst", "thunderclap", "stiff", "neck", 
+                            "fever", "confusion", "speech", "weakness", "numb", "seizure", "vision", "loss", "vomiting"]
+        
+        # Count keyword matches for each type (word by word)
+        migraine_count = sum(1 for word in migraine_keywords if word in keywords_list)
+        tension_count = sum(1 for word in tension_keywords if word in keywords_list)
+        cluster_count = sum(1 for word in cluster_keywords if word in keywords_list)
+        sinus_count = sum(1 for word in sinus_keywords if word in keywords_list)
+        emergency_count = sum(1 for word in emergency_keywords if word in keywords_list)
+        
+        # Add specific phrase checks that are important for diagnosis
+        if "one side" in keywords or ("one" in keywords_list and "side" in keywords_list):
+            migraine_count += 2  # This is a strong indicator of migraine
+            
+        if "both sides" in keywords or ("both" in keywords_list and "sides" in keywords_list):
+            tension_count += 2  # This is a strong indicator of tension headache
+            
+        if "light sensitive" in keywords or "sensitivity to light" in keywords or "worse with light" in keywords:
+            migraine_count += 2  # Another strong migraine indicator
         
         # Check for possible emergency conditions first
-        if emergency_count >= 2 and any(word in keywords for word in ["worst", "sudden", "severe"]):
+        if emergency_count >= 2 and any(word in keywords_list for word in ["worst", "sudden", "severe"]):
             diagnosis = "Your symptoms suggest a potentially serious condition that requires IMMEDIATE medical attention."
             recommendations = [
                 "⚠️ SEEK EMERGENCY CARE IMMEDIATELY",
