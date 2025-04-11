@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Headache History - AI Headache Diagnosis Assistant</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+</head>
+<body>
+    <div class="container py-4">
+        <!-- Header -->
+        <header class="pb-3 mb-4 border-bottom">
+            <div class="d-flex align-items-center text-body-emphasis text-decoration-none">
+                <i class="fas fa-brain fs-4 me-2 text-primary"></i>
+                <span class="fs-4">Headache AI Assistant</span>
+                <div class="ms-auto">
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-home me-1"></i> Home
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <!-- History Section -->
+            <div class="row mb-4">
+                <div class="col-lg-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-history me-2"></i> Your Headache History
+                            </h5>
+                            <div>
+                                <button id="refreshHistoryBtn" class="btn btn-sm btn-secondary">
+                                    <i class="fas fa-sync-alt me-1"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="loadingHistory" class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Loading your headache history...</p>
+                            </div>
+
+                            <div id="emptyHistory" class="text-center py-5 d-none">
+                                <i class="fas fa-file-medical text-muted fa-3x mb-3"></i>
+                                <h5>No History Found</h5>
+                                <p class="text-muted">You haven't analyzed any headache symptoms yet.</p>
+                                <a href="{{ url_for('index') }}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-1"></i> Analyze Symptoms
+                                </a>
+                            </div>
+
+                            <div id="historyTable" class="d-none">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Symptoms</th>
+                                                <th>Diagnosis</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="historyTableBody">
+                                            <!-- History entries will be added here dynamically -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div id="errorHistory" class="alert alert-danger d-none" role="alert">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <span id="errorHistoryMessage">An error occurred while loading history.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Record Detail Modal -->
+            <div class="modal fade" id="recordDetailModal" tabindex="-1" aria-labelledby="recordDetailModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="recordDetailModalLabel">Headache Record Details</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="recordModalLoading" class="text-center py-3">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                            <div id="recordModalContent" class="d-none">
+                                <div class="mb-3">
+                                    <h6>Date:</h6>
+                                    <p id="modalDate" class="text-muted">January 1, 2025</p>
+                                </div>
+                                <div class="mb-3">
+                                    <h6>Symptoms:</h6>
+                                    <p id="modalSymptoms">Loading symptoms...</p>
+                                </div>
+                                <div class="mb-3" id="modalFallbackContainer">
+                                    <div class="alert alert-warning">
+                                        <small><i class="fas fa-exclamation-triangle me-1"></i> This analysis used the fallback system (AI service was unavailable)</small>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <h6>Diagnosis:</h6>
+                                    <p id="modalDiagnosis">Loading diagnosis...</p>
+                                </div>
+                                <div class="mb-3">
+                                    <h6>Recommendations:</h6>
+                                    <ul id="modalRecommendations" class="list-group list-group-flush">
+                                        <!-- Recommendations will be added here -->
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="mt-5 text-center text-muted">
+            <p>
+                <small>Headache AI Assistant &copy; 2025 | 
+                <a href="https://github.com/" id="github-link" target="_blank" class="text-decoration-none">
+                    <i class="fab fa-github"></i> View on GitHub
+                </a>
+                </small>
+            </p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/history.js') }}"></script>
+</body>
+</html>

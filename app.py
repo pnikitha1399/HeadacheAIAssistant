@@ -33,6 +33,11 @@ def index():
     """Render the main page"""
     return render_template("index.html")
 
+@app.route("/history")
+def history_page():
+    """Render the history page"""
+    return render_template("history.html")
+
 @app.route("/analyze", methods=["POST"])
 def analyze_symptoms():
     """Analyze the headache symptoms using RAG and LLM"""
@@ -105,9 +110,9 @@ def analyze_symptoms():
             "record_id": record_id
         }), 200
 
-@app.route("/history", methods=["GET"])
+@app.route("/api/history", methods=["GET"])
 def get_headache_history():
-    """Get the history of headache records"""
+    """API endpoint to get the history of headache records as JSON"""
     try:
         # Get all records ordered by most recent first
         records = HeadacheRecord.query.order_by(HeadacheRecord.created_at.desc()).all()

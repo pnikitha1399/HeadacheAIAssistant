@@ -13,11 +13,20 @@
 </head>
 <body>
     <div class="container py-4">
-        <header class="text-center mb-5">
-            <h1 class="display-5 fw-bold">
-                <i class="fas fa-brain text-info me-2"></i> Headache AI Assistant
-            </h1>
-            <p class="lead">Describe your headache symptoms for AI-powered analysis and recommendations</p>
+        <header class="mb-5">
+            <div class="text-center">
+                <h1 class="display-5 fw-bold">
+                    <i class="fas fa-brain text-info me-2"></i> Headache AI Assistant
+                </h1>
+                <p class="lead">Describe your headache symptoms for AI-powered analysis and recommendations</p>
+            </div>
+            
+            <div class="text-end mb-3">
+                <a href="{{ url_for('history_page') }}" class="btn btn-outline-info">
+                    <i class="fas fa-history me-1"></i> View History
+                </a>
+            </div>
+            
             <div class="alert alert-warning" role="alert">
                 <i class="fas fa-exclamation-triangle me-2"></i>
                 <strong>Medical Disclaimer:</strong> This tool provides information only and is not a substitute for professional medical advice, diagnosis, or treatment.
