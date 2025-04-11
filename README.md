@@ -1,5 +1,8 @@
 # Headache AI Assistant
 
+![This shows the main page of the website where you can enter the symptoms and the diagnosis is shown on the right side](MainPage.jpeg)
+
+
 A web application that uses Retrieval-Augmented Generation (RAG) and Large Language Models to analyze headache symptoms and provide recommendations.
 
 ## Features
