@@ -50,6 +50,9 @@ A web application that uses Retrieval-Augmented Generation (RAG) and Large Langu
 2. Click "Analyze Symptoms" to get diagnosis and recommendations
 3. View your history of headache records on the History page
 
+
+![This shows the history, keeps a log](History.jpeg)
+
 ## Disclaimer
 
 This application is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.
