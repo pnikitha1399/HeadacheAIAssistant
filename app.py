@@ -56,12 +56,14 @@ def analyze_symptoms():
         else:
             error_message = "An error occurred during analysis. Using fallback method."
             
+        # Return a 200 status with fallback data instead of 500
+        # This makes it easier for the frontend to handle
         return jsonify({
             "error": error_message,
             "diagnosis": fallback_diagnosis,
             "recommendations": fallback_recommendations,
             "using_fallback": True
-        }), 500
+        }), 200
 
 @app.route("/health")
 def health_check():

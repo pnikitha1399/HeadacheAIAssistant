@@ -27,6 +27,9 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoading();
         
         try {
+            // Log the symptoms being sent to help with debugging
+            console.log('Sending symptoms:', symptoms);
+            
             // Send symptoms to backend
             const response = await fetch('/analyze', {
                 method: 'POST',
@@ -39,15 +42,16 @@ document.addEventListener('DOMContentLoaded', function() {
             // Parse response data
             const data = await response.json();
             
-            // Check if response is ok
-            if (!response.ok) {
-                // If we have diagnosis and recommendations from fallback
-                if (data && data.diagnosis && data.recommendations) {
-                    displayResults(data.diagnosis, data.recommendations, true);
-                    showError(data.error || 'Using fallback analysis system.');
-                } else {
-                    throw new Error(data.error || 'An error occurred while analyzing symptoms.');
-                }
+            console.log('Response data:', data);
+            
+            // Check if using fallback (this comes from our API)
+            if (data.using_fallback === true) {
+                // Display fallback results
+                displayResults(data.diagnosis, data.recommendations, true);
+                showError(data.error || 'Using fallback analysis system.');
+            } else if (!response.ok) {
+                // General error from server but no fallback
+                throw new Error(data.error || 'An error occurred while analyzing symptoms.');
             } else {
                 // Display normal results
                 displayResults(data.diagnosis, data.recommendations, false);
