@@ -17,12 +17,21 @@ app.secret_key = os.environ.get("SESSION_SECRET", "dev_secret_key")
 # Configure database
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_pre_ping": True,  # Detect stale connections
+    "pool_recycle": 300,    # Recycle connections after 5 minutes
+    "pool_timeout": 30,     # Connection timeout of 30 seconds
+    "pool_size": 10         # Maximum number of connections
+}
 db.init_app(app)
 
 # Create database tables immediately
 with app.app_context():
-    db.create_all()
-    logger.info("Database tables created")
+    try:
+        db.create_all()
+        logger.info("Database tables created successfully")
+    except Exception as e:
+        logger.error(f"Error creating database tables: {str(e)}")
 
 # Initialize the knowledge base and RAG system
 knowledge_base = MedicalKnowledgeBase()
@@ -55,19 +64,29 @@ def analyze_symptoms():
         diagnosis, recommendations = headache_rag.analyze_headache(symptoms_text)
         
         # Save the analysis to the database
-        record = HeadacheRecord(
-            symptoms=symptoms_text,
-            diagnosis=diagnosis,
-            recommendations=json.dumps(recommendations),
-            used_fallback=False
-        )
-        db.session.add(record)
-        db.session.commit()
+        record_id = None
+        try:
+            record = HeadacheRecord(
+                symptoms=symptoms_text,
+                diagnosis=diagnosis,
+                recommendations=json.dumps(recommendations),
+                used_fallback=False
+            )
+            db.session.add(record)
+            db.session.commit()
+            record_id = record.id
+        except Exception as db_error:
+            logger.error(f"Error saving primary analysis to database: {str(db_error)}")
+            # Make sure to rollback the session
+            try:
+                db.session.rollback()
+            except:
+                pass
         
         return jsonify({
             "diagnosis": diagnosis,
             "recommendations": recommendations,
-            "record_id": record.id
+            "record_id": record_id
         })
     
     except Exception as e:
@@ -87,17 +106,27 @@ def analyze_symptoms():
         
         # Save the fallback analysis to the database
         try:
-            record = HeadacheRecord(
-                symptoms=symptoms_text,
-                diagnosis=fallback_diagnosis,
-                recommendations=json.dumps(fallback_recommendations),
-                used_fallback=True
-            )
-            db.session.add(record)
-            db.session.commit()
-            record_id = record.id
+            # Create a new session for this operation to prevent transaction issues
+            with app.app_context():
+                # Make sure we have a clean session
+                db.session.remove()
+                
+                record = HeadacheRecord(
+                    symptoms=symptoms_text,
+                    diagnosis=fallback_diagnosis,
+                    recommendations=json.dumps(fallback_recommendations),
+                    used_fallback=True
+                )
+                db.session.add(record)
+                db.session.commit()
+                record_id = record.id
         except Exception as db_error:
             logger.error(f"Error saving to database: {str(db_error)}")
+            # Make sure to rollback the session to avoid future errors
+            try:
+                db.session.rollback()
+            except:
+                pass
             record_id = None
             
         # Return a 200 status with fallback data instead of 500
@@ -114,25 +143,38 @@ def analyze_symptoms():
 def get_headache_history():
     """API endpoint to get the history of headache records as JSON"""
     try:
-        # Get all records ordered by most recent first
-        records = HeadacheRecord.query.order_by(HeadacheRecord.created_at.desc()).all()
-        
-        # Format the records for JSON response
-        history = []
-        for record in records:
-            history.append({
-                "id": record.id,
-                "symptoms": record.symptoms,
-                "diagnosis": record.diagnosis,
-                "recommendations": json.loads(record.recommendations),
-                "created_at": record.created_at.isoformat(),
-                "used_fallback": record.used_fallback
-            })
-        
-        return jsonify({"history": history})
+        # Create a fresh session context to avoid any transaction issues
+        with app.app_context():
+            # Get all records ordered by most recent first
+            records = HeadacheRecord.query.order_by(HeadacheRecord.created_at.desc()).all()
+            
+            # Format the records for JSON response
+            history = []
+            for record in records:
+                # Handle potential JSON parsing errors
+                try:
+                    recommendations = json.loads(record.recommendations)
+                except:
+                    recommendations = ["Error loading recommendations"]
+                
+                history.append({
+                    "id": record.id,
+                    "symptoms": record.symptoms,
+                    "diagnosis": record.diagnosis,
+                    "recommendations": recommendations,
+                    "created_at": record.created_at.isoformat(),
+                    "used_fallback": record.used_fallback
+                })
+            
+            return jsonify({"history": history})
     
     except Exception as e:
         logger.error(f"Error getting history: {str(e)}")
+        # Make sure to close the session
+        try:
+            db.session.rollback()
+        except:
+            pass
         return jsonify({"error": "Failed to retrieve headache history"}), 500
 
 @app.route("/health")
