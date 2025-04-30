@@ -18,7 +18,7 @@ A web application that uses Retrieval-Augmented Generation (RAG) and Large Langu
 - **Backend**: Flask, Flask-SQLAlchemy, PostgreSQL
 - **Frontend**: HTML, CSS, JavaScript, Bootstrap
 - **AI Integration**: OpenAI API, RAG implementation
-- **Deployment**: Replit
+
 
 ## Setup
 
